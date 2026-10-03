@@ -1,0 +1,602 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Informatika Party: Battle Arena SMP</title>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+  :root { --bg:#0f172a; --panel:#1e293b; --line:#334155; --text:#f8fafc; --muted:#94a3b8; --yellow:#facc15; --green:#22c55e; --red:#ef4444; --cyan:#22d3ee; }
+  * { box-sizing:border-box; }
+  body { margin:0; min-height:100vh; font-family:'Fredoka',system-ui,sans-serif; color:var(--text);
+         background:#0f172a url(assets/images/bg_menu.svg) center/cover fixed; display:flex; flex-direction:column; align-items:center; padding:12px; }
+  header { text-align:center; }
+  header img { width:min(420px,90vw); }
+  main { width:100%; max-width:720px; background:rgba(15,23,42,.92); border:4px solid var(--line); border-radius:24px;
+         padding:20px; box-shadow:0 8px 0 #020617, 0 15px 30px rgba(0,0,0,.5); }
+  .hidden { display:none !important; }
+  h2 { margin:0 0 8px; color:var(--yellow); text-align:center; }
+  p { line-height:1.5; }
+  label { display:block; font-weight:600; margin:12px 0 4px; color:#cbd5e1; }
+  input, select { width:100%; padding:12px 14px; border-radius:12px; background:#020617; color:var(--text);
+                  border:2px solid var(--line); font:inherit; }
+  input:focus, select:focus { outline:none; border-color:var(--yellow); }
+  .btn { display:block; width:100%; margin-top:14px; padding:14px; border:0; border-radius:16px; font:700 1.1rem 'Fredoka',sans-serif;
+         color:#fff; background:linear-gradient(90deg,#22c55e,#059669); box-shadow:0 6px 0 #064e3b; cursor:pointer; }
+  .btn:active { transform:translateY(4px); box-shadow:0 2px 0 #064e3b; }
+  .btn:disabled { opacity:.6; cursor:wait; }
+  .btn.alt { background:#334155; box-shadow:0 6px 0 #0f172a; color:var(--yellow); }
+  .btn.gold { background:linear-gradient(90deg,#facc15,#f59e0b); color:#1c1917; box-shadow:0 6px 0 #92400e; }
+  .msg { min-height:1.4em; text-align:center; color:#fca5a5; font-weight:600; }
+  .banner { background:#7c2d12; color:#fed7aa; border-radius:10px; padding:8px 12px; font-size:.85rem; margin-bottom:10px; text-align:center; }
+  #mute { position:fixed; top:10px; right:10px; z-index:9; width:44px; height:44px; border-radius:50%; border:2px solid var(--line);
+          background:#0f172a; color:#fff; font-size:1.2rem; cursor:pointer; }
+
+  /* Briefing */
+  .vs { display:flex; align-items:center; justify-content:center; gap:12px; margin:10px 0; }
+  .vs img { width:110px; height:150px; }
+  .vs b { font-size:2.4rem; color:var(--red); text-shadow:0 3px 0 #000; }
+  .rules { background:#020617; border-radius:14px; padding:10px 16px 10px 32px; margin:0; }
+  .rules li { margin:4px 0; }
+
+  /* Arena */
+  .arena { position:relative; height:230px; border-radius:16px; overflow:hidden; background:#000 center/cover; border:3px solid var(--line); }
+  .fighter { position:absolute; bottom:18px; width:110px; height:150px; transition:transform .18s ease-out; }
+  #heroImg { left:8%; }
+  #bossImg { right:8%; }
+  .bars { position:absolute; top:8px; left:8px; right:8px; display:flex; justify-content:space-between; gap:12px; font-size:.8rem; font-weight:700; text-shadow:0 1px 0 #000; }
+  .bar { flex:1; }
+  .bar .track { height:12px; background:#020617; border:2px solid #000; border-radius:8px; overflow:hidden; }
+  .bar .fill { height:100%; width:100%; transition:width .3s; }
+  #heroHp { background:linear-gradient(90deg,#22d3ee,#22c55e); }
+  #bossHp { background:linear-gradient(90deg,#f97316,#ef4444); margin-left:auto; }
+  .bar.right { text-align:right; }
+  .lunge-right { transform:translateX(160%) rotate(8deg); }
+  .lunge-left { transform:translateX(-160%) rotate(-8deg); }
+  .hit { animation:hit .4s; }
+  @keyframes hit { 0%,100%{filter:none;translate:0} 20%{filter:brightness(2) drop-shadow(0 0 8px red);translate:-8px} 40%{translate:8px} 60%{translate:-5px} 80%{translate:5px} }
+  .pop { position:absolute; font-size:1.8rem; font-weight:700; text-shadow:0 3px 0 #000; animation:pop .9s forwards; pointer-events:none; }
+  @keyframes pop { from{opacity:1;transform:translateY(0)} to{opacity:0;transform:translateY(-60px)} }
+  #combo { position:absolute; bottom:6px; left:50%; translate:-50% 0; color:var(--yellow); font-weight:700; text-shadow:0 2px 0 #000; }
+
+  .hud { display:flex; justify-content:space-between; align-items:center; margin:12px 0 6px; font-weight:700; }
+  .timer { height:8px; background:#020617; border-radius:6px; overflow:hidden; }
+  #timerFill { height:100%; background:var(--yellow); width:100%; }
+  #question { font-size:1.15rem; font-weight:600; margin:12px 0; }
+  #options { display:grid; gap:10px; }
+  #options button { text-align:left; padding:12px 14px; border-radius:12px; border:2px solid var(--line); background:#1e293b;
+                    color:var(--text); font:500 1rem 'Fredoka',sans-serif; cursor:pointer; box-shadow:0 4px 0 #020617; }
+  #options button:hover:not(:disabled) { border-color:var(--cyan); }
+  #options button.ok { background:#166534; border-color:var(--green); }
+  #options button.no { background:#7f1d1d; border-color:var(--red); }
+
+  /* Hasil & papan */
+  .score { font-size:4rem; font-weight:700; color:var(--green); text-align:center; margin:0; }
+  #lbList { list-style:none; padding:0; margin:10px 0 0; max-height:50vh; overflow-y:auto; }
+  #lbList li { display:flex; justify-content:space-between; gap:10px; padding:10px 12px; margin-bottom:6px; border-radius:12px; background:#020617; border:1px solid var(--line); }
+  #lbList .rank { color:var(--yellow); font-weight:700; min-width:2.2em; display:inline-block; }
+  #lbList .pts { color:var(--green); font-weight:700; white-space:nowrap; }
+  #lbList .pts.wait { color:var(--muted); font-weight:500; }
+  /* Menu mode */
+  .modes { display:grid; grid-template-columns:repeat(auto-fill,minmax(150px,1fr)); gap:10px; margin-top:12px; }
+  .mode { text-align:left; padding:12px; border-radius:16px; border:3px solid var(--line); background:#1e293b; color:var(--text);
+          font:inherit; cursor:pointer; box-shadow:0 5px 0 #020617; }
+  .mode:active { transform:translateY(3px); box-shadow:0 2px 0 #020617; }
+  .mode b { display:block; font-size:1.05rem; }
+  .mode span { font-size:.8rem; color:var(--muted); }
+  .mode .tag { display:inline-block; margin-top:6px; padding:2px 8px; border-radius:99px; font-size:.72rem; font-weight:700; color:#0f172a; background:#22c55e; }
+  .mode.ujian { width:100%; margin-top:12px; border-color:#facc15; background:linear-gradient(135deg,#422006,#1e293b); }
+  .mode.ujian .tag { background:#facc15; }
+
+  /* Layar main mode latihan (layar penuh) */
+  #scrParty { position:fixed; inset:0; z-index:20; background:#0f172a center/cover; display:flex; flex-direction:column; user-select:none; -webkit-user-select:none; }
+  #pStage { position:relative; flex:1; display:flex; flex-direction:column; align-items:center; gap:8px; padding:54px 10px 10px; overflow:hidden; }
+  #pExit { position:absolute; top:10px; left:10px; z-index:5; padding:6px 14px; border-radius:99px; border:2px solid var(--line); background:#0f172acc; color:#fff; font:600 .9rem 'Fredoka'; cursor:pointer; }
+  .ptop { display:flex; flex-wrap:wrap; gap:12px; justify-content:center; font-weight:700; background:#0f172acc; padding:6px 14px; border-radius:12px; }
+  .gtask { width:100%; max-width:760px; height:4.6em; flex-shrink:0; display:flex; align-items:center; justify-content:center; overflow:hidden; text-align:center; font-weight:700; font-size:.95rem; line-height:1.25; background:#0f172add; border:2px solid var(--line); border-radius:12px; padding:4px 12px; }
+  .tkhint { margin:0; color:#cbd5e1; font-size:.8rem; text-align:center; }
+  .pwin { position:absolute; inset:0; z-index:6; background:#020617dd; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:24px; text-align:center; }
+  .pwin .btn { max-width:320px; }
+  .garena { position:relative; width:100%; max-width:760px; flex:1; min-height:300px; background:#0f172a99; border-radius:16px; overflow:hidden; touch-action:none; }
+  .garena.shake { animation:hit .4s; }
+  .garena.glanes { background:linear-gradient(90deg,transparent 33%,#ffffff22 33.3%,transparent 33.6%,transparent 66.4%,#ffffff22 66.6%,transparent 67%),#0f172a99; }
+  .gitem { position:absolute; top:0; left:0; padding:6px 10px; border-radius:10px; background:#f8fafc; color:#0f172a; font-weight:700; font-size:.85rem;
+           line-height:1.2; text-align:center; max-width:46%; box-shadow:0 3px 0 #475569; cursor:pointer; }
+  .gitem.big { font-size:1.1rem; max-width:80%; }
+  .gitem.ok, .ghole.ok, .ggrid button.ok, .gblock.ok { background:#22c55e !important; color:#fff !important; }
+  .gitem.no, .ghole.no, .ggrid button.no, .gblock.no { background:#ef4444 !important; color:#fff !important; }
+  .gitem.cut { opacity:.35; transition:opacity .3s; }
+  .ghero { position:absolute; top:0; left:0; z-index:3; pointer-events:none; }
+  .gpillar { position:absolute; background:linear-gradient(90deg,#16a34a,#22c55e); border:3px solid #052e16; border-radius:6px; }
+  .gground { position:absolute; background:#334155; border-top:3px solid #94a3b8; }
+  .gspike { position:absolute; top:0; left:0; width:30px; height:30px; background:#f43f5e; clip-path:polygon(50% 0,100% 100%,0 100%); }
+  .ggate { position:absolute; background:repeating-linear-gradient(#facc15 0 12px,#0f172a 12px 24px); }
+  .ggate.ok { background:#22c55e; } .ggate.no { background:#ef4444; }
+  .gwater { position:absolute; background:#0ea5e988; border-block:3px solid #38bdf8; }
+  .glog { background:#a16207; color:#fff; max-width:none; }
+  .gplat { position:absolute; min-height:14px; background:#22c55e; border:2px solid #052e16; border-radius:8px; color:#052e16; font-weight:700; font-size:.75rem; text-align:center; line-height:1.15; padding:1px 3px; }
+  .gplat.soal { background:#f8fafc; }
+  .gplat.ok { background:#22c55e; } .gplat.pecah { opacity:.25; }
+  .gblock { position:absolute; border:2px solid #0f172a; border-radius:6px; background:#38bdf8; color:#0f172a; font-weight:700; font-size:.78rem;
+            display:flex; align-items:center; justify-content:center; text-align:center; overflow:hidden; line-height:1.1; padding:0 4px; }
+  .gblock.base { background:#64748b; color:#fff; } .gblock.gerak { background:#facc15; }
+  .gside { position:absolute; bottom:10px; padding:8px 12px; border-radius:12px; font-weight:700; background:#0f172acc; border:2px solid var(--yellow); }
+  .gbar { position:absolute; background:#7c3aed; border-block:3px solid #c4b5fd; }
+  .gball { position:absolute; top:0; left:0; width:26px; height:26px; border-radius:50%; background:radial-gradient(circle at 35% 35%,#fff,#facc15 40%,#ca8a04); }
+  .ghole { position:absolute; top:0; left:0; height:30px; background:#020617; color:#facc15; border-radius:8px; font-size:1.1rem; font-weight:600;
+           display:flex; align-items:center; justify-content:center; text-align:center; line-height:1.05; overflow:hidden; padding:0 3px; }
+  .glegend { position:absolute; left:8px; right:8px; white-space:pre-line; font-size:.85rem; font-weight:600; background:#0f172acc; border-radius:10px; padding:6px 10px; }
+  .gcard { position:absolute; left:50%; top:42%; width:min(86%,420px); translate:-50% -50%; background:#f8fafc; color:#0f172a; border-radius:18px;
+           padding:18px; font-weight:600; text-align:center; box-shadow:0 8px 0 #475569; transition:transform .12s; }
+  .gcard small { display:block; color:#475569; font-size:.95rem; }
+  .gcard big { display:block; font-size:1.35rem; margin-top:8px; word-break:break-word; }
+  .gcard.stamp-ok { outline:6px solid #22c55e; } .gcard.stamp-no { outline:6px solid #ef4444; }
+  .gtimer { position:absolute; left:0; top:0; height:6px; background:var(--yellow); }
+  .gbtns { position:absolute; left:0; right:0; bottom:10px; display:flex; gap:10px; justify-content:center; padding:0 10px; }
+  .gbtns button { flex:1; max-width:220px; padding:14px; border:0; border-radius:14px; font:700 1.05rem 'Fredoka'; color:#fff; cursor:pointer; box-shadow:0 5px 0 #020617; }
+  .ggrid { position:absolute; inset:10px; display:grid; gap:6px; }
+  .ggrid button, .ggrid .cell { border:2px solid #334155; border-radius:10px; background:#1e293b; color:#fff; font:600 .78rem 'Fredoka'; padding:3px;
+                                cursor:pointer; word-break:break-word; display:flex; align-items:center; justify-content:center; text-align:center; }
+  .ggrid button.sel { outline:3px solid var(--yellow); }
+  .ggrid.rak { top:auto; height:58%; grid-template-columns:repeat(3,1fr); }
+  .ggrid.gholes { grid-template-columns:repeat(3,1fr); }
+  .gholes button { background:#3f2a14; border-color:#1c1917; border-radius:50% / 40%; font-size:.85rem; }
+  .gholes button.up { background:#f8fafc; color:#0f172a; }
+  .ggrid.gcandy { grid-template-columns:repeat(6,1fr); bottom:52px; gap:4px; }
+  .gcandy button { font-size:.66rem; background:#312e81; }
+  .ggrid.g2048 { inset:auto; left:50%; top:50%; translate:-50% -50%; width:min(94%,360px); aspect-ratio:1; grid-template-columns:repeat(4,1fr); }
+  .g2048 .cell { font-size:1rem; cursor:default; background:#1e293b55; }
+  .gbola.lv0,.cell.lv0{background:#e0f2fe;color:#0f172a} .gbola.lv1,.cell.lv1{background:#7dd3fc;color:#0f172a} .gbola.lv2,.cell.lv2{background:#38bdf8} .gbola.lv3,.cell.lv3{background:#0284c7}
+  .gbola.lv4,.cell.lv4{background:#a855f7} .gbola.lv5,.cell.lv5{background:#ec4899} .gbola.lv6,.cell.lv6{background:#facc15;color:#0f172a}
+  .gacak { position:absolute; bottom:8px; left:50%; translate:-50% 0; padding:8px 16px; border-radius:99px; background:#334155; font-weight:700; cursor:pointer; }
+  .gticket { position:absolute; top:8px; left:8px; right:8px; background:#fef3c7; color:#0f172a; border-radius:12px; padding:8px 12px; font-weight:600; font-size:.88rem; }
+  .gticket .done { opacity:.5; text-decoration:line-through; }
+  .gtbar { height:6px; background:#f59e0b; border-radius:3px; margin-top:4px; }
+  .gbelt { position:absolute; background:repeating-linear-gradient(90deg,#475569 0 20px,#334155 20px 40px); border-block:4px solid #94a3b8; }
+  .gbins { position:absolute; left:6px; right:6px; bottom:6px; display:flex; gap:6px; }
+  .gbins button { flex:1; padding:14px 4px; border:3px solid #0f172a; border-radius:12px 12px 6px 6px; background:#0d9488; color:#fff; font:700 .82rem 'Fredoka'; cursor:pointer; }
+  .gheads { position:absolute; left:0; right:0; top:0; display:grid; }
+  /* Mode khusus jenjang */
+  .mode .tag.khusus { background:#f472b6; }
+  .gkolom { position:absolute; inset:8px; display:flex; flex-direction:column; gap:8px; overflow:auto; }
+  .gpick { background:#1e293b; border:2px solid #334155; border-radius:12px; color:#fff; font:600 .75rem 'Fredoka'; padding:4px;
+           display:flex; flex-direction:column; align-items:center; gap:2px; cursor:pointer; }
+  .gpick img { height:40px; max-width:100%; }
+  .gpick.sel { outline:3px solid var(--yellow); background:#334155; }
+  .gpick.ok { background:#166534; border-color:#22c55e; }
+  .gboard { position:absolute; left:50%; top:6px; translate:-50% 0; background:url(assets/images/motherboard.svg) center/100% 100%; border-radius:10px; transition:box-shadow .4s; }
+  .gboard.nyala { box-shadow:0 0 0 4px #22c55e, 0 0 40px #22c55e; }
+  .gslot { position:absolute; padding:0; background:transparent; border:3px solid transparent; border-radius:8px; cursor:pointer; }
+  .gslot:hover { border-color:var(--yellow); }
+  .gslot.isi { background:#0f172ae6; border-color:#22c55e; display:flex; flex-wrap:wrap; align-items:center; justify-content:center; gap:2px 4px; color:#fff; font:700 .68rem 'Fredoka'; overflow:hidden; }
+  .gslot.isi img { height:min(34px,70%); max-width:70%; object-fit:contain; }
+  .gtray { position:absolute; left:6px; right:6px; bottom:6px; display:grid; grid-template-columns:repeat(4,1fr); gap:6px; }
+  .gcol { position:absolute; top:8px; bottom:8px; width:40%; display:flex; flex-direction:column; gap:6px; justify-content:center; }
+  .gcol.kiri { left:8px; } .gcol.kanan { right:8px; }
+  .gcol .gpick { flex-direction:row; justify-content:flex-start; gap:8px; font-size:.82rem; padding:4px 8px; text-align:left; }
+  .gcol .gpick img { height:32px; width:44px; object-fit:contain; flex-shrink:0; }
+  .glines { position:absolute; inset:0; width:100%; height:100%; pointer-events:none; }
+  .gbola { position:absolute; top:0; left:0; border-radius:50%; display:flex; align-items:center; justify-content:center; font-weight:700; border:3px solid #0f172a; color:#fff; }
+  .gbola.prev { opacity:.55; }
+  .gdanger { position:absolute; background:#ef444488; } .gdanger.bahaya { background:#ef4444; animation:hit .4s infinite; }
+  .gdok { position:absolute; left:4%; top:8px; width:64px; }
+  .gpasien { position:absolute; left:50%; top:8px; translate:-50% 0; width:110px; }
+  .gbubble { position:absolute; left:8px; right:8px; top:126px; background:#fff; color:#0f172a; border-radius:14px; padding:10px; font-weight:700; text-align:center; }
+  .ggrid.gopsi { top:auto; height:44%; grid-template-columns:1fr 1fr; }
+  .gopsi button { font-size:.85rem; }
+  .gpreview { background:#fff; color:#0f172a; border-radius:10px; padding:4px 8px; flex-shrink:0; }
+  .gpreview small { font-weight:700; }
+  .gpreview iframe { width:100%; height:96px; border:1px solid #cbd5e1; border-radius:6px; background:#fff; }
+  .gcode { font-family:monospace; font-size:.82rem; border-radius:10px; padding:6px; }
+  .gcode.jawab { flex:1; min-height:70px; overflow:auto; background:#020617; color:#86efac; }
+  .gcode.jawab div { white-space:pre; }
+  .gcode small { color:#64748b; font-family:'Fredoka'; }
+  .gcode.acak { display:flex; flex-wrap:wrap; gap:5px; flex-shrink:0; padding:0; }
+  .gcode button { white-space:pre; text-align:left; font:600 .8rem monospace; background:#1e293b; color:#e2e8f0; border:2px solid #334155; border-radius:8px; padding:6px 8px; cursor:pointer; }
+  .gcode.bug { background:#020617; display:flex; flex-direction:column; }
+  .gcode.bug button { border:0; border-bottom:1px solid #1e293b; border-radius:0; padding:10px 6px; background:transparent; }
+  .gcode button i { color:#64748b; margin-right:10px; font-style:normal; }
+  .gcode button.ok, .gchips button.ok { background:#166534 !important; color:#fff; } .gcode button.no, .gchips button.no { background:#991b1b !important; color:#fff; }
+  .gbuginfo { display:flex; gap:8px; align-items:center; font-weight:700; }
+  .gbuginfo img { width:54px; flex-shrink:0; }
+  .gduo { display:grid; grid-template-columns:1fr 1fr; gap:8px; }
+  .gduo small { display:block; color:#cbd5e1; font-weight:700; margin-bottom:2px; }
+  .gtampil { background:#fff; color:#0f172a; padding:10px; border-radius:8px; min-height:74px; font-size:16px; font-family:'Fredoka',sans-serif; }
+  .gcss { margin:0; background:#020617; color:#86efac; border-radius:10px; padding:8px; font-size:.8rem; min-height:4.5em; }
+  .gchips { display:flex; flex-wrap:wrap; gap:6px; justify-content:center; }
+  .gchips button { font:600 .85rem monospace; padding:8px 10px; border-radius:10px; background:#1e293b; color:#fff; border:2px solid #334155; cursor:pointer; }
+  .gchips.teks button { font-family:'Fredoka',sans-serif; }
+  .gchips button.sel { background:#1d4ed8; border-color:#93c5fd; }
+  .gprompt { background:#f8fafc; color:#0f172a; border-radius:10px; padding:10px; font-weight:600; min-height:3.5em; }
+  .gslide { position:relative; flex-shrink:0; width:100%; aspect-ratio:16/9; background:#fff; color:#0f172a; border-radius:10px; padding:4%; overflow:hidden;
+            font-family:Arial,sans-serif; font-size:clamp(10px,3.3vw,17px); display:flex; flex-direction:column; gap:3%; box-shadow:0 6px 0 #475569; }
+  .gslide .sj { font-size:1.45em; font-weight:700; }
+  .gslide .sbody { display:grid; grid-template-columns:1.4fr 1fr; gap:4%; flex:1; min-height:0; }
+  .gslide ul { margin:0; padding-left:1.2em; }
+  .gslide .sp { margin:0; font-size:.72em; line-height:1.2; }
+  .gslide .si { white-space:pre-line; }
+  .gslide .spesan { font-weight:700; margin-top:4px; }
+  .gslide img { width:100%; height:100%; object-fit:contain; }
+  .gslide .ssum { font-size:.65em; color:#475569; }
+  .gslide .shias { position:absolute; top:4%; right:4%; font-size:1.4em; animation:hit .8s infinite; }
+  .sbag { cursor:pointer; border-radius:6px; min-height:0; }
+  .sbag:hover { outline:2px dashed #94a3b8; }
+  .sbag.fixed { animation:fixflash .9s; }
+  @keyframes fixflash { from { background:#bbf7d0; } to { background:transparent; } }
+  .gchat { display:flex; gap:8px; align-items:flex-start; }
+  .gchat img { width:60px; flex-shrink:0; }
+  .gbubble2 { flex:1; background:#ede9fe; color:#1e1b4b; border-radius:4px 16px 16px 16px; padding:12px; font-weight:600; font-size:1.05rem; }
+  .gsumber { background:#fef3c7; color:#0f172a; border-radius:10px; padding:8px; font-size:.9rem; font-weight:600; }
+  .gbtns2 { display:flex; gap:8px; }
+  .gbtns2 button { flex:1; padding:14px 8px; border:0; border-radius:14px; font:700 1rem 'Fredoka'; color:#fff; cursor:pointer; box-shadow:0 5px 0 #020617; }
+  .gbrief { font-weight:700; background:#0f172acc; border-radius:10px; padding:6px 10px; }
+  .gstep { font-weight:700; color:var(--yellow); text-align:center; }
+  .gjuri { display:flex; gap:10px; justify-content:center; width:100%; }
+  .gjuri div { display:flex; flex-direction:column; align-items:center; font-size:.8rem; }
+  .gjuri img { width:56px; }
+  .gpost { background:#fff; color:#0f172a; border-radius:14px; padding:12px; box-shadow:0 5px 0 #475569; }
+  .gpost-h { display:flex; align-items:center; gap:8px; }
+  .gav { width:34px; height:34px; border-radius:50%; display:flex; align-items:center; justify-content:center; color:#fff; font-weight:700; }
+  .gpost p { font-size:1.05rem; font-weight:600; margin:8px 0; }
+  .gpost small { color:#64748b; }
+  .gpost.stamp-ok { outline:6px solid #22c55e; } .gpost.stamp-no { outline:6px solid #ef4444; }
+  .gheads div { padding:6px 2px; text-align:center; font-size:.75rem; font-weight:700; background:#0f172acc; border-inline:1px solid #334155; }
+
+  footer { color:#64748b; font-size:.75rem; margin-top:12px; }
+
+  @media (max-width:480px) {
+    main { padding:14px; }
+    .arena { height:190px; }
+    .fighter { width:84px; height:115px; }
+  }
+</style>
+</head>
+<body>
+<button id="mute" title="Musik on/off" aria-label="Musik on/off">🔊</button>
+<header><img src="assets/images/logo.svg" alt="Informatika Party"></header>
+
+<main>
+  <!-- LOGIN -->
+  <section id="scrLogin">
+    <div id="demoBanner" class="banner hidden">Mode uji: URL Apps Script belum diisi, nilai TIDAK disimpan.</div>
+    <h2>MASUK ARENA BATTLE</h2>
+    <form id="loginForm">
+      <label for="nama">Nama Lengkap</label>
+      <input id="nama" required minlength="3" maxlength="60" autocomplete="name" placeholder="Contoh: Budi Santoso">
+      <label for="kelas">Kelas</label>
+      <select id="kelas" required>
+        <option value="">-- Pilih Kelas --</option>
+        <option>VII.2</option><option>VII.3</option>
+        <option>VIII.1</option><option>VIII.2</option><option>VIII.3</option>
+        <option>IX.1</option><option>IX.2</option><option>IX.3</option>
+      </select>
+      <button class="btn" type="submit">LANJUT 🚀</button>
+    </form>
+    <button class="btn alt" data-go="papan">🏆 Lihat Leaderboard</button>
+  </section>
+
+  <!-- MENU MODE -->
+  <section id="scrMenu" class="hidden">
+    <h2>PILIH MODE GAME</h2>
+    <p id="menuHalo" style="text-align:center;margin:0;color:var(--cyan);font-weight:600"></p>
+    <button class="mode ujian" data-mode="boss"><b>⚔️ Battle Boss</b><span>25 soal acak melawan boss. Nilai masuk ke guru.</span><br><span class="tag">UJIAN · 1x KESEMPATAN</span></button>
+    <h2 style="margin-top:18px;font-size:1.1rem">🎮 MODE LATIHAN</h2>
+    <p style="text-align:center;color:var(--muted);font-size:.85rem;margin:0">Main sepuasnya. Nilai tidak dikirim ke guru, rekor tersimpan di perangkatmu.</p>
+    <div class="modes" id="gameList"></div>
+    <button class="btn alt" data-go="papan">🏆 Lihat Leaderboard</button>
+    <button class="btn alt" data-go="login">Ganti Pemain</button>
+  </section>
+
+  <!-- BRIEFING -->
+  <section id="scrBrief" class="hidden">
+    <h2 id="briefTitle"></h2>
+    <p id="briefMateri" style="text-align:center;margin:0;color:var(--cyan);font-weight:600"></p>
+    <div class="vs"><img src="assets/images/hero.svg" alt="Kamu"><b>VS</b><img id="briefBoss" alt="Boss"></div>
+    <ul class="rules">
+      <li>⚔️ <b>25 soal</b> acak. Jawaban benar = seranganmu ke boss.</li>
+      <li>⏱️ Tiap soal <b>30 detik</b>. Salah/waktu habis = boss menyerang balik.</li>
+      <li>🎯 Nilai = jumlah benar × 4 (maksimal 100).</li>
+      <li>⚠️ Hanya <b>1 kali kesempatan</b>. Jangan tutup/refresh halaman saat battle!</li>
+    </ul>
+    <p id="briefMsg" class="msg"></p>
+    <button id="btnMulai" class="btn">MULAI BATTLE ⚔️</button>
+    <button class="btn alt" data-go="menu">Kembali</button>
+  </section>
+
+  <!-- BATTLE -->
+  <section id="scrBattle" class="hidden">
+    <div class="arena" id="arena">
+      <div class="bars">
+        <div class="bar"><span id="heroName">Kamu</span><div class="track"><div class="fill" id="heroHp"></div></div></div>
+        <div class="bar right"><span id="bossName">Boss</span><div class="track"><div class="fill" id="bossHp"></div></div></div>
+      </div>
+      <img id="heroImg" class="fighter" src="assets/images/hero.svg" alt="">
+      <img id="bossImg" class="fighter" alt="">
+      <div id="combo"></div>
+    </div>
+    <div class="hud"><span>Soal <span id="qNo">1</span>/25</span><span>✅ <span id="qBenar">0</span></span><span>⏱️ <span id="qTime">30</span></span></div>
+    <div class="timer"><div id="timerFill"></div></div>
+    <p id="question"></p>
+    <div id="options"></div>
+  </section>
+
+  <!-- HASIL -->
+  <section id="scrHasil" class="hidden">
+    <h2 id="hasilTitle"></h2>
+    <p style="text-align:center;margin:0" id="hasilSub"></p>
+    <p class="score" id="hasilNilai">0</p>
+    <p id="kirimStatus" style="text-align:center;font-weight:600"></p>
+    <button id="btnKirimUlang" class="btn hidden">Kirim Ulang Nilai</button>
+    <button class="btn gold" data-go="papan">🏆 Lihat Leaderboard</button>
+  </section>
+
+  <!-- LEADERBOARD -->
+  <section id="scrPapan" class="hidden">
+    <h2>🏆 LEADERBOARD KELAS</h2>
+    <select id="lbKelas" aria-label="Pilih kelas">
+      <option>VII.2</option><option>VII.3</option>
+      <option>VIII.1</option><option>VIII.2</option><option>VIII.3</option>
+      <option>IX.1</option><option>IX.2</option><option>IX.3</option>
+    </select>
+    <p id="lbInfo" style="color:var(--muted);text-align:center;margin:8px 0 0"></p>
+    <ol id="lbList"></ol>
+    <button class="btn alt" id="lbBack">Kembali</button>
+  </section>
+</main>
+<footer>Informatika SMP Party Game</footer>
+
+<!-- PARTY (layar penuh) -->
+<section id="scrParty" class="hidden">
+  <button id="pExit">✕ Keluar</button>
+  <div id="pStage"></div>
+</section>
+
+<script src="soal.js"></script>
+<script>
+// ====== KONFIGURASI: tempel URL Web App Apps Script (berakhiran /exec) ======
+const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxA9srrH-1Bz8WRisnJ_acZA-l_6GWSDI1FirFnKKkaHa4YtyXr5YntHl31t_VVmreC/exec';
+// ===========================================================================
+const ONLINE = SCRIPT_URL.startsWith('https://');
+const JUMLAH = 25, WAKTU = 30, POIN = 100 / JUMLAH;
+const MATERI = {
+  kelas7: { judul: 'Kelas 7', materi: 'Pengenalan Komputer: Hardware & Software', boss: 'Virus.EXE' },
+  kelas8: { judul: 'Kelas 8', materi: 'Website HTML dengan AI & HP', boss: 'Bug </>' },
+  kelas9: { judul: 'Kelas 9', materi: 'Presentasi dengan AI', boss: 'Hoaks-Bot' },
+};
+const jenjang = k => k.startsWith('VIII') ? 'kelas8' : k.startsWith('VII') ? 'kelas7' : 'kelas9';
+const $ = id => document.getElementById(id);
+
+let pemain = null;       // {nama, kelas, jj}
+let soal = [], idx = 0, benar = 0, combo = 0, sisa = WAKTU, tick = null;
+
+// ---------- Audio ----------
+let muted = false;
+const bgm = new Audio(); bgm.loop = true; bgm.volume = 0.35;
+function musik(nama) {
+  const src = `assets/audio/${nama}.mp3`;
+  if (!bgm.src.endsWith(src)) bgm.src = src;
+  if (!muted) bgm.play().catch(() => {});
+}
+function sfx(nama) { if (!muted) new Audio(`assets/audio/${nama}.mp3`).play().catch(() => {}); }
+$('mute').onclick = () => {
+  muted = !muted; $('mute').textContent = muted ? '🔇' : '🔊';
+  muted ? bgm.pause() : bgm.play().catch(() => {});
+};
+document.addEventListener('click', e => { if (e.target.closest('button:not(#options button)')) sfx('sfx_klik'); });
+
+// ---------- Navigasi ----------
+const SCREENS = { login: 'scrLogin', menu: 'scrMenu', party: 'scrParty', brief: 'scrBrief', battle: 'scrBattle', hasil: 'scrHasil', papan: 'scrPapan' };
+let layarAktif = 'login', layarSebelum = 'login';
+function tampil(nama) {
+  if (nama === 'papan') { layarSebelum = layarAktif; muatPapan(); }
+  for (const k in SCREENS) $(SCREENS[k]).classList.toggle('hidden', k !== nama);
+  layarAktif = nama;
+  window.scrollTo(0, 0);
+}
+document.querySelectorAll('[data-go]').forEach(b => b.onclick = () => tampil(b.dataset.go));
+$('lbBack').onclick = () => tampil(layarSebelum);
+
+// ---------- API ----------
+async function api(params) {
+  const r = await fetch(SCRIPT_URL + '?' + new URLSearchParams(params));
+  return r.json();
+}
+
+// ---------- Login & briefing ----------
+if (!ONLINE) $('demoBanner').classList.remove('hidden');
+$('loginForm').onsubmit = e => {
+  e.preventDefault();
+  const nama = $('nama').value.trim().replace(/\s+/g, ' ');
+  const kelas = $('kelas').value;
+  if (nama.length < 3) return;
+  pemain = { nama, kelas, jj: jenjang(kelas) };
+  const m = MATERI[pemain.jj];
+  $('menuHalo').textContent = `Halo ${nama} (${kelas}) · Materi ${m.judul}: ${m.materi}`;
+  $('briefTitle').textContent = `${m.judul} — Lawan ${m.boss}`;
+  $('briefMateri').textContent = m.materi;
+  $('briefBoss').src = `assets/images/boss_${pemain.jj}.svg`;
+  $('briefMsg').textContent = '';
+  $('lbKelas').value = kelas;
+  musik('bgm_menu');
+  renderMenu();
+  tampil('menu');
+};
+document.querySelector('[data-mode="boss"]').onclick = () => tampil('brief');
+
+$('btnMulai').onclick = async () => {
+  const btn = $('btnMulai');
+  btn.disabled = true; $('briefMsg').textContent = '';
+  try {
+    if (ONLINE) {
+      btn.textContent = 'Memeriksa...';
+      const res = await api({ aksi: 'mulai', nama: pemain.nama, kelas: pemain.kelas, materi: MATERI[pemain.jj].materi });
+      if (!res.ok) { $('briefMsg').textContent = res.pesan || 'Server nilai belum siap. Lapor ke guru.'; return; }
+    }
+    mulaiBattle();
+  } catch {
+    $('briefMsg').textContent = 'Gagal terhubung ke server. Cek internet lalu coba lagi.';
+  } finally {
+    btn.disabled = false; btn.textContent = 'MULAI BATTLE ⚔️';
+  }
+};
+
+// ---------- Battle ----------
+function acak(a) {
+  a = a.slice();
+  for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; }
+  return a;
+}
+
+function mulaiBattle() {
+  const m = MATERI[pemain.jj];
+  soal = acak(BANK_SOAL[pemain.jj]).slice(0, JUMLAH).map(([q, ok, ...salah]) => ({ q, ok, pilihan: acak([ok, ...salah]) }));
+  idx = 0; benar = 0; combo = 0;
+  $('arena').style.backgroundImage = `url(assets/images/bg_${pemain.jj}.svg)`;
+  $('bossImg').src = `assets/images/boss_${pemain.jj}.svg`;
+  $('heroName').textContent = pemain.nama.split(' ')[0];
+  $('bossName').textContent = m.boss;
+  updateHp();
+  musik(`bgm_${pemain.jj}`);
+  window.onbeforeunload = () => 'Battle sedang berlangsung!';
+  tampil('battle');
+  tampilSoal();
+}
+
+function updateHp() {
+  const salah = idx - benar;
+  $('heroHp').style.width = (100 - salah * POIN) + '%';
+  $('bossHp').style.width = (100 - benar * POIN) + '%';
+  $('qBenar').textContent = benar;
+  $('combo').textContent = combo >= 2 ? `🔥 COMBO x${combo}` : '';
+}
+
+function tampilSoal() {
+  const s = soal[idx];
+  $('qNo').textContent = idx + 1;
+  $('question').textContent = s.q;
+  const box = $('options'); box.innerHTML = '';
+  s.pilihan.forEach((p, i) => {
+    const b = document.createElement('button');
+    b.textContent = `${'ABCD'[i]}. ${p}`;   // textContent: tag HTML di soal tampil sebagai teks, tidak dijalankan
+    b.dataset.val = p;
+    b.onclick = () => jawab(p, b);
+    box.appendChild(b);
+  });
+  sisa = WAKTU; updateTimer();
+  clearInterval(tick);
+  tick = setInterval(() => { sisa -= 0.1; updateTimer(); if (sisa <= 0) jawab(null, null); }, 100);
+}
+
+function updateTimer() {
+  $('qTime').textContent = Math.max(0, Math.ceil(sisa));
+  $('timerFill').style.width = Math.max(0, sisa / WAKTU * 100) + '%';
+}
+
+function popup(teks, warna, kanan) {
+  const el = document.createElement('div');
+  el.className = 'pop'; el.textContent = teks; el.style.color = warna;
+  el.style[kanan ? 'right' : 'left'] = '12%'; el.style.top = '40px';
+  $('arena').appendChild(el); setTimeout(() => el.remove(), 900);
+}
+
+function serang(penyerang, korban, arah) {
+  penyerang.classList.add(arah);
+  sfx('sfx_serang');
+  setTimeout(() => {
+    penyerang.classList.remove(arah);
+    korban.classList.remove('hit'); void korban.offsetWidth; korban.classList.add('hit');
+  }, 180);
+}
+
+function jawab(pilih, tombol) {
+  clearInterval(tick);
+  const s = soal[idx];
+  [...$('options').children].forEach(b => { b.disabled = true; if (b.dataset.val === s.ok) b.classList.add('ok'); });
+  if (pilih === s.ok) {
+    benar++; combo++;
+    sfx('sfx_benar');
+    serang($('heroImg'), $('bossImg'), 'lunge-right');
+    popup(combo >= 3 ? `CRITICAL! -${POIN}` : `-${POIN}`, '#facc15', true);
+  } else {
+    combo = 0;
+    if (tombol) tombol.classList.add('no');
+    sfx('sfx_salah');
+    serang($('bossImg'), $('heroImg'), 'lunge-left');
+    popup(pilih === null ? 'WAKTU HABIS!' : `-${POIN}`, '#ef4444', false);
+  }
+  idx++;
+  updateHp();
+  setTimeout(() => idx < JUMLAH ? tampilSoal() : selesai(), 1300);
+}
+
+// ---------- Selesai ----------
+function selesai() {
+  window.onbeforeunload = null;
+  bgm.pause();
+  const nilai = benar * POIN, menang = benar > JUMLAH - benar;
+  sfx(menang ? 'sfx_menang' : 'sfx_kalah');
+  $('hasilTitle').textContent = benar === JUMLAH ? '🏆 PERFECT! BOSS HANCUR!' : menang ? '🏆 KAMU MENANG!' : '💥 BOSS MENANG... TETAP SEMANGAT!';
+  $('hasilSub').textContent = `${pemain.nama} (${pemain.kelas}) — benar ${benar} dari ${JUMLAH} soal`;
+  $('hasilNilai').textContent = nilai;
+  tampil('hasil');
+  const data = { aksi: 'selesai', nama: pemain.nama, kelas: pemain.kelas, benar };
+  try { localStorage.setItem('nilaiTertunda', JSON.stringify(data)); } catch {}
+  kirimNilai(data);
+}
+
+async function kirimNilai(data) {
+  const st = $('kirimStatus'), ulang = $('btnKirimUlang');
+  ulang.classList.add('hidden');
+  if (!ONLINE) { st.textContent = 'Mode uji: nilai tidak disimpan.'; return; }
+  st.textContent = 'Mengirim nilai ke guru...';
+  try {
+    const res = await api(data);
+    if (!res.ok) throw new Error(res.pesan);
+    try { localStorage.removeItem('nilaiTertunda'); } catch {}
+    st.textContent = '✅ Nilai berhasil tersimpan!';
+  } catch {
+    st.textContent = '⚠️ Gagal mengirim nilai. Pastikan internet menyala lalu tekan Kirim Ulang.';
+    ulang.classList.remove('hidden');
+    ulang.onclick = () => kirimNilai(data);
+  }
+}
+
+// Nilai yang belum terkirim (mis. internet putus lalu halaman ditutup) dikirim ulang saat halaman dibuka lagi.
+(function () {
+  let d = null;
+  try { d = JSON.parse(localStorage.getItem('nilaiTertunda')); } catch {}
+  if (d && ONLINE) api(d).then(r => { if (r.ok) localStorage.removeItem('nilaiTertunda'); }).catch(() => {});
+})();
+
+// ---------- Leaderboard ----------
+$('lbKelas').onchange = muatPapan;
+async function muatPapan() {
+  const list = $('lbList'), info = $('lbInfo'), kelas = $('lbKelas').value;
+  list.innerHTML = '';
+  if (!ONLINE) { info.textContent = 'Leaderboard aktif setelah URL Apps Script diisi.'; return; }
+  info.textContent = 'Memuat...';
+  try {
+    const res = await api({ aksi: 'papan', kelas });
+    const rows = res.data.sort((a, b) => (b.nilai ?? -1) - (a.nilai ?? -1));
+    const jmlSelesai = rows.filter(r => r.nilai !== null).length;
+    info.textContent = rows.length ? `${rows.length} peserta · ${jmlSelesai} selesai` : 'Belum ada peserta di kelas ini.';
+    let rank = 0;
+    rows.forEach(r => {
+      const li = document.createElement('li');
+      const kiri = document.createElement('span'), kanan = document.createElement('span');
+      const no = document.createElement('span'); no.className = 'rank';
+      if (r.nilai !== null) { rank++; no.textContent = ['🥇', '🥈', '🥉'][rank - 1] || `#${rank}`; } else no.textContent = '·';
+      kiri.append(no, ' ' + r.nama);
+      kanan.className = 'pts' + (r.nilai === null ? ' wait' : '');
+      kanan.textContent = r.nilai === null ? 'belum selesai' : `${r.nilai} poin`;
+      li.append(kiri, kanan); list.appendChild(li);
+    });
+  } catch {
+    info.textContent = 'Gagal memuat leaderboard. Cek internet.';
+  }
+}
+</script>
+<script src="modes.js"></script>
+<script src="modes-jenjang.js"></script>
+</body>
+</html>
