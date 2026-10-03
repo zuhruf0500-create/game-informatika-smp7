@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 520 150">
+  <defs><linearGradient id="g" x1="0" x2="1"><stop offset="0" stop-color="#facc15"/><stop offset=".5" stop-color="#f472b6"/><stop offset="1" stop-color="#22d3ee"/></linearGradient></defs>
+  <g font-family="'Arial Black', Impact, sans-serif" font-weight="900" text-anchor="middle">
+    <text x="260" y="70" font-size="58" fill="#0f172a" transform="translate(4 5)">INFORMATIKA</text>
+    <text x="260" y="70" font-size="58" fill="url(#g)" stroke="#0f172a" stroke-width="2.5">INFORMATIKA</text>
+    <text x="260" y="128" font-size="48" fill="#0f172a" transform="translate(4 5)">PARTY!</text>
+    <text x="260" y="128" font-size="48" fill="#fff" stroke="#0f172a" stroke-width="2.5">PARTY!</text>
+  </g>
+  <g stroke="#fff" stroke-width="5" stroke-linecap="round" fill="none"><circle cx="40" cy="104" r="11" fill="#fff"/><path d="M40 115 V135 M40 120 L22 108 M40 120 L58 112"/></g>
+  <g stroke="#fff" stroke-width="5" stroke-linecap="round" fill="none"><circle cx="480" cy="104" r="11" fill="#fff"/><path d="M480 115 V135 M480 120 L498 108 M480 120 L462 112"/></g>
+</svg>

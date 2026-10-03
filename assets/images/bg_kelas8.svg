@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 450" preserveAspectRatio="xMidYMid slice">
+  <defs><linearGradient id="s" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#0c0a1d"/><stop offset="1" stop-color="#312e81"/></linearGradient></defs>
+  <rect width="800" height="450" fill="url(#s)"/>
+  <g font-family="monospace" font-size="20" fill="#c4b5fd" opacity=".35"><text x="40" y="60">&lt;!DOCTYPE html&gt;</text><text x="40" y="90">&lt;html&gt;</text><text x="70" y="120">&lt;body&gt;</text><text x="100" y="150">&lt;h1&gt;Halo Dunia&lt;/h1&gt;</text><text x="100" y="180">&lt;p&gt;Website pertamaku&lt;/p&gt;</text><text x="70" y="210">&lt;/body&gt;</text><text x="40" y="240">&lt;/html&gt;</text><text x="520" y="80">&lt;img src="logo.png"&gt;</text><text x="540" y="120">&lt;a href="#"&gt;</text><text x="560" y="300">&lt;ul&gt;&lt;li&gt;</text></g><g opacity=".55"><rect x="600" y="150" width="110" height="190" rx="16" fill="#0f172a" stroke="#a78bfa" stroke-width="4"/><rect x="612" y="168" width="86" height="150" rx="4" fill="#4c1d95"/><text x="655" y="250" font-family="monospace" font-size="26" font-weight="bold" fill="#f0abfc" text-anchor="middle">&lt;/&gt;</text></g>
+  <rect y="360" width="800" height="90" fill="#1e1b4b"/>
+  <path d="M0 360 H800" stroke="#fff" stroke-opacity=".25" stroke-width="3"/>
+</svg>
