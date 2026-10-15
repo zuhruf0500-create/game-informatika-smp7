@@ -650,10 +650,10 @@ Object.assign(GAMES, {
       const LANGKAH = ['judul', 'isi', 'gambar', 'warna', 'huruf'], NAMA = { judul: 'Judul', isi: 'Isi', gambar: 'Gambar', warna: 'Warna', huruf: 'Huruf' }, ambilBrief = antrean(STUDIO_BRIEF);
       let br, step = 0, pilihan = {}, jeda = 0;
       function render() {
-        slide.style.cssText = (pilihan.warna?.[3] || '') + (pilihan.huruf?.[3] || '');
+        slide.style.cssText = ((pilihan.warna && pilihan.warna[3]) || '') + ((pilihan.huruf && pilihan.huruf[3]) || '');
         slide.innerHTML = '<div class="sj"></div><div class="sbody"><div class="si"></div><img alt=""></div>';
-        slide.querySelector('.sj').textContent = pilihan.judul?.[0] || 'Judul…';
-        slide.querySelector('.si').textContent = pilihan.isi?.[0] || 'Isi…';
+        slide.querySelector('.sj').textContent = (pilihan.judul && pilihan.judul[0]) || 'Judul…';
+        slide.querySelector('.si').textContent = (pilihan.isi && pilihan.isi[0]) || 'Isi…';
         const img = slide.querySelector('img'), g = pilihan.gambar;
         if (!g) img.style.visibility = 'hidden';
         else { img.src = IMG(g[3] === 'meme' ? 'boss_kelas7' : br.img); if (g[3] === 'buram') img.style.filter = 'blur(4px)'; }
