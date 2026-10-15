@@ -123,7 +123,7 @@ function mulaiGame(id) {
 }
 
 function stopGame() {
-  if (game) { game.aktif = false; game.stop?.(); }
+  if (game) { game.aktif = false; game.stop && game.stop(); }
   cancelAnimationFrame(raf);
   game = null;
 }
@@ -132,7 +132,7 @@ function keMenu() { stopGame(); renderMenu(); tampil('menu'); musik('bgm_menu');
 $('pExit').onclick = keMenu;
 
 const kunciRekor = id => `rekor_${id}_${pemain.jj}`;
-function bacaRekor(id) { try { return +localStorage.getItem(kunciRekor(id)) || 0; } catch { return 0; } }
+function bacaRekor(id) { try { return +localStorage.getItem(kunciRekor(id)) || 0; } catch (_) { return 0; } }
 
 function konteks(id, g) {
   const A = $('gArena');
@@ -177,16 +177,16 @@ function konteks(id, g) {
         c.waktu -= dt;
         if (Math.ceil(c.waktu) !== s0) c.hud();
         if (c.waktu <= 0) return c.selesai('⏱️ WAKTU HABIS!');
-        c.update?.(dt);
+        c.update && c.update(dt);
         if (c.aktif) raf = requestAnimationFrame(f);
       };
       raf = requestAnimationFrame(f);
     },
     selesai(judul) {
       if (!c.aktif) return;
-      c.aktif = false; cancelAnimationFrame(raf); c.stop?.();
+      c.aktif = false; cancelAnimationFrame(raf); c.stop && c.stop();
       const rekor = bacaRekor(id), baru = c.skor > rekor;
-      if (baru) try { localStorage.setItem(kunciRekor(id), c.skor); } catch {}
+      if (baru) try { localStorage.setItem(kunciRekor(id), c.skor); } catch (_) {}
       sfx(c.skor > 0 ? 'sfx_menang' : 'sfx_kalah');
       const w = document.createElement('div');
       w.className = 'pwin';
@@ -203,27 +203,27 @@ function konteks(id, g) {
 
   // Input sentuh/mouse: onTap (saat ditekan), onDrag, onSwipe / onKlik (saat dilepas), onUp.
   let sx = 0, sy = 0;
-  A.onpointerdown = e => { [sx, sy] = c.xy(e); c.tahan = true; c.onTap?.(sx, sy, e); };
-  A.onpointermove = e => { if (e.buttons) { const [x, y] = c.xy(e); c.onDrag?.(x, y, x - sx, y - sy); } };
+  A.onpointerdown = e => { [sx, sy] = c.xy(e); c.tahan = true; c.onTap && c.onTap(sx, sy, e); };
+  A.onpointermove = e => { if (e.buttons) { const [x, y] = c.xy(e); c.onDrag && c.onDrag(x, y, x - sx, y - sy); } };
   A.onpointerup = e => {
     c.tahan = false;
     const [x, y] = c.xy(e), dx = x - sx, dy = y - sy;
-    if (Math.max(Math.abs(dx), Math.abs(dy)) > 30) c.onSwipe?.(Math.abs(dx) > Math.abs(dy) ? (dx > 0 ? 'kanan' : 'kiri') : (dy > 0 ? 'bawah' : 'atas'));
-    else c.onKlik?.(x, y, e);
-    c.onUp?.(dx, dy);
+    if (Math.max(Math.abs(dx), Math.abs(dy)) > 30) c.onSwipe && c.onSwipe(Math.abs(dx) > Math.abs(dy) ? (dx > 0 ? 'kanan' : 'kiri') : (dy > 0 ? 'bawah' : 'atas'));
+    else c.onKlik && c.onKlik(x, y, e);
+    c.onUp && c.onUp(dx, dy);
   };
   A.onpointerleave = A.onpointercancel = () => { c.tahan = false; };
   return c;
 }
 
 document.addEventListener('keydown', e => {
-  if (!game?.aktif) return;
+  if (!game || !game.aktif) return;
   if ([' ', 'ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown'].includes(e.key)) e.preventDefault();
   if (e.repeat) return;
   game.keys.add(e.key);
-  game.onKey?.(e.key, true);
+  game.onKey && game.onKey(e.key, true);
 });
-document.addEventListener('keyup', e => { if (!game) return; game.keys.delete(e.key); game.onKey?.(e.key, false); });
+document.addEventListener('keyup', e => { if (!game) return; game.keys.delete(e.key); game.onKey && game.onKey(e.key, false); });
 
 function renderMenu() {
   const box = $('gameList');
@@ -417,7 +417,7 @@ const GAMES = {
       const hero = c.hero(44), air = c.el(null, 'gwater');
       let lane = null, t = 0, hop = 0;
       function baru() {
-        lane?.els.forEach(e => e.remove());
+        if (lane) lane.els.forEach(e => e.remove());
         const s = soalAcak(3);
         c.task(s.q);
         lane = { s, base: Math.random() * c.W(), arah: Math.random() < 0.5 ? 1 : -1, v: 60 + t * 1.2, xs: [], ganti: null,
