@@ -418,7 +418,7 @@ $('loginForm').onsubmit = e => {
   $('briefMsg').textContent = '';
   $('lbKelas').value = kelas;
   musik('bgm_menu');
-  renderMenu();
+  if (typeof renderMenu === 'function') renderMenu();   // mode latihan opsional; Battle Boss tetap jalan
   tampil('menu');
 };
 document.querySelector('[data-mode="boss"]').onclick = () => tampil('brief');
@@ -433,7 +433,7 @@ $('btnMulai').onclick = async () => {
       if (!res.ok) { $('briefMsg').textContent = res.pesan || 'Server nilai belum siap. Lapor ke guru.'; return; }
     }
     mulaiBattle();
-  } catch {
+  } catch (_) {
     $('briefMsg').textContent = 'Gagal terhubung ke server. Cek internet lalu coba lagi.';
   } finally {
     btn.disabled = false; btn.textContent = 'MULAI BATTLE ⚔️';
@@ -540,7 +540,7 @@ function selesai() {
   $('hasilNilai').textContent = nilai;
   tampil('hasil');
   const data = { aksi: 'selesai', nama: pemain.nama, kelas: pemain.kelas, benar };
-  try { localStorage.setItem('nilaiTertunda', JSON.stringify(data)); } catch {}
+  try { localStorage.setItem('nilaiTertunda', JSON.stringify(data)); } catch (_) {}
   kirimNilai(data);
 }
 
@@ -552,9 +552,9 @@ async function kirimNilai(data) {
   try {
     const res = await api(data);
     if (!res.ok) throw new Error(res.pesan);
-    try { localStorage.removeItem('nilaiTertunda'); } catch {}
+    try { localStorage.removeItem('nilaiTertunda'); } catch (_) {}
     st.textContent = '✅ Nilai berhasil tersimpan!';
-  } catch {
+  } catch (_) {
     st.textContent = '⚠️ Gagal mengirim nilai. Pastikan internet menyala lalu tekan Kirim Ulang.';
     ulang.classList.remove('hidden');
     ulang.onclick = () => kirimNilai(data);
@@ -564,7 +564,7 @@ async function kirimNilai(data) {
 // Nilai yang belum terkirim (mis. internet putus lalu halaman ditutup) dikirim ulang saat halaman dibuka lagi.
 (function () {
   let d = null;
-  try { d = JSON.parse(localStorage.getItem('nilaiTertunda')); } catch {}
+  try { d = JSON.parse(localStorage.getItem('nilaiTertunda')); } catch (_) {}
   if (d && ONLINE) api(d).then(r => { if (r.ok) localStorage.removeItem('nilaiTertunda'); }).catch(() => {});
 })();
 
@@ -577,7 +577,7 @@ async function muatPapan() {
   info.textContent = 'Memuat...';
   try {
     const res = await api({ aksi: 'papan', kelas });
-    const rows = res.data.sort((a, b) => (b.nilai ?? -1) - (a.nilai ?? -1));
+    const rows = res.data.sort((a, b) => (b.nilai === null ? -1 : b.nilai) - (a.nilai === null ? -1 : a.nilai));
     const jmlSelesai = rows.filter(r => r.nilai !== null).length;
     info.textContent = rows.length ? `${rows.length} peserta · ${jmlSelesai} selesai` : 'Belum ada peserta di kelas ini.';
     let rank = 0;
@@ -591,7 +591,7 @@ async function muatPapan() {
       kanan.textContent = r.nilai === null ? 'belum selesai' : `${r.nilai} poin`;
       li.append(kiri, kanan); list.appendChild(li);
     });
-  } catch {
+  } catch (_) {
     info.textContent = 'Gagal memuat leaderboard. Cek internet.';
   }
 }
